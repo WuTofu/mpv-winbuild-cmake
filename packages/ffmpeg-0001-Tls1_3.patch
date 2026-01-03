@@ -1,0 +1,27 @@
+From 8aa48ace9820a47bd52403c06b08ad27086810a9 Mon Sep 17 00:00:00 2001
+From: WuTofu <5987870+WuTofu@users.noreply.github.com>
+Date: Mon, 5 Jan 2026 20:22:08 +0800
+Subject: [PATCH] Set minimum TLS version to TLSv1.3
+
+---
+ libavformat/tls_openssl.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/libavformat/tls_openssl.c b/libavformat/tls_openssl.c
+index c7d6ff6cf4..a7ff280f54 100644
+--- a/libavformat/tls_openssl.c
++++ b/libavformat/tls_openssl.c
+@@ -859,8 +859,8 @@ static int tls_open(URLContext *h, const char *uri, int flags, AVDictionary **op
+         ret = AVERROR(EIO);
+         goto fail;
+     }
+-    if (!SSL_CTX_set_min_proto_version(c->ctx, TLS1_VERSION)) {
+-        av_log(h, AV_LOG_ERROR, "Failed to set minimum TLS version to TLSv1\n");
++    if (!SSL_CTX_set_min_proto_version(c->ctx, TLS1_3_VERSION)) {
++        av_log(h, AV_LOG_ERROR, "Failed to set minimum TLS version to TLSv1.3\n");
+         ret = AVERROR_EXTERNAL;
+         goto fail;
+     }
+-- 
+2.49.0
+
