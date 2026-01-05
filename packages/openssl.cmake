@@ -38,6 +38,9 @@ ExternalProject_Add(openssl
         no-apps
         no-ocsp
         no-ssl3
+        no-tls1
+        no-tls1_1
+        no-tls1_2
         no-cmac
         no-mdc2
         no-idea
