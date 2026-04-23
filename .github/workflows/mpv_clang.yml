@@ -9,6 +9,7 @@ on:
       command:
         description: 'Run custom command before building'
         required: false
+        default: 'ninja -C build_$BIT mpv-fullclean'
         type: string
       sourceforge:
         description: 'Upload to Sourceforge'
