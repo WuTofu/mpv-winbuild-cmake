@@ -11,7 +11,6 @@ ExternalProject_Add(libsixel
         --disable-sixel2png
         --disable-python
         --disable-shared
-        --disable-tests
         --enable-static
     BUILD_COMMAND ${MAKE}
     INSTALL_COMMAND ${MAKE} install
