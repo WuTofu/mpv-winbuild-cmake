@@ -43,6 +43,7 @@ jobs:
       image: docker://ghcr.io/shinchiro/archlinux:latest
     outputs:
       mpv_ver: ${{ steps.build_mpv_step.outputs.mpv_ver }}
+      git_updates: ${{ steps.build_mpv_step.outputs.git_updates }}
     steps:
       - name: Init variable
         run: |
@@ -112,7 +113,13 @@ jobs:
         env:
           MPV_TARBALL: ${{ github.event.inputs.mpv_tarball }}
         run: |
-          ninja -C build_$BIT update
+          ninja -C build_$BIT update 2>&1 | tee /tmp/update_log.txt
+          git_updates=$(python3 parse_git_updates.py /tmp/update_log.txt)
+          if [[ $BIT == "x86_64_v3" ]]; then
+            echo "git_updates<<DELIMITER" >> $GITHUB_OUTPUT
+            echo "$git_updates" >> $GITHUB_OUTPUT
+            echo "DELIMITER" >> $GITHUB_OUTPUT
+          fi
           $MPV_TARBALL && ninja -C build_$BIT mpv-release || ninja -C build_$BIT mpv
           $MPV_TARBALL && echo "mpv_ver=$(cat build_$BIT/packages/mpv-release-prefix/VERSION)" >> $GITHUB_OUTPUT || echo "mpv_ver=UNKNOWN" >> $GITHUB_OUTPUT
 
@@ -279,12 +286,16 @@ jobs:
         id: upload_packages_gh
         if: ${{ github.event.inputs.github_release == 'true' && github.event.inputs.mpv_tarball == 'false' }}
         continue-on-error: true
+        env:
+          GIT_UPDATES: ${{ needs.build_mpv.outputs.git_updates }}
         run: |
           short_date=$(date "+%Y%m%d")
+          updates_section=""
+          [[ -n "$GIT_UPDATES" ]] && updates_section=$(printf '\n\n**Updated packages:**\n%s' "$GIT_UPDATES")
           body=$(cat <<END
           ![GitHub release (by tag)](https://img.shields.io/github/downloads/$GITHUB_REPOSITORY/$short_date/total?label=Downloads)
 
-          **Workflow run**: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
+          **Workflow run**: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID$updates_section
           END
           )
           id=$(curl $CURL_RETRIES -s -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github.v3+json" -X POST https://api.github.com/repos/$GITHUB_REPOSITORY/releases -d @- <<END | jq -r '.id'
